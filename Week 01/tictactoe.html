@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    #area{
+        width: 310px;
+        height: 310px;
+    }
+    .cell{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        float: left;
+        width: 100px;
+        height: 100px;
+        background: green;
+        border:1px black solid;
+        color:yellow;
+    }
+</style>
+<body>
+    <div id="area"></div>
+
+    <script>
+        //数据结构表示
+        let pattern = [
+            [0,2,0],
+            [0,1,0],
+            [0,0,0]
+        ];
+
+        let step = 1;
+        //创建棋盘
+        function show(){
+            let area = document.getElementById("area");
+
+            area.innerHTML = "";
+            // 3X3格子
+            for(let i = 0; i<3;i++){
+                for(let j = 0;j<3;j++){
+                    let cell = document.createElement("div");
+                    cell.setAttribute("class","cell");
+                    // console.log(cell);
+                    cell.innerText = pattern[i][j]==1?"X":pattern[i][j]==2?"O":"";
+                    //添加事件
+                    cell.addEventListener("click",()=>action(i,j));
+                    area.appendChild(cell); 
+                }
+                area.appendChild(document.createElement("br"));
+            }
+        }
+
+        // 下棋
+        function action(x,y){
+            pattern[x][y] = step;
+
+            if(check(pattern,step)) {alert(step==1?"X is winner":"O is winner");}
+            step = 3 - step;
+
+            console.log(bestChoice(pattern,step));
+            show();            
+            // if(willWin(pattern,step)){
+            //     alert(step==1?"X will winner":"O will winner");
+            // };
+        }
+
+        function willWin(pattern,step){
+
+            for(let i = 0; i<3;i++){
+                // let win = true;
+                for(let j = 0; j<3;j++){
+                    if(pattern[i][j]) continue;
+                    let tmp = clone(pattern);
+                    tmp[i][j] = step;
+                    if(check(tmp,step)){
+                        return [i,j];
+                    }
+                }             
+            }
+            return null;
+        }
+
+        //最好得选择
+        function bestChoice(pattern,step){
+            let p;
+            if(p = willWin(pattern,step)){
+                return {
+                    point:p,
+                    result:1
+                }
+            }
+            let result = -2;
+            let point = null;
+            for(let i = 0; i<3;i++){
+                for(let j = 0; j<3;j++){
+                    if(pattern[i][j]) continue;
+                    let tmp = clone(pattern);
+                    tmp[i][j] = step;
+                    // console.log(tmp);
+                    let r = bestChoice(tmp,3-step).result;
+                    
+                    if(-r > result){
+                        result = -r;
+                        ponit = [i,j]
+                        
+                    }
+                    // console.log(r);
+                } 
+            }
+                
+            return {
+                point:point,
+                result:point?result:0
+            }    
+            
+        }
+
+        //当前数据结构克隆
+        function clone(pattern){
+            //引用类型 简单实现数组深拷贝
+            return JSON.parse(JSON.stringify(pattern));
+        }
+
+
+        //判断胜负
+        function check(pattern,step){
+            //同行判断
+            for(let i = 0; i<3;i++){
+                let win = true;
+                for(let j = 0; j<3;j++){
+                    if(pattern[i][j] !== step){
+                        win = false;
+                    }
+                } 
+                if(win) return true;
+                
+            }
+            // 同列判断
+            for(let i = 0; i<3;i++){
+                let win = true;
+                for(let j = 0; j<3;j++){
+                    if(pattern[j][i] !== step){
+                            win = false;
+                    }
+                } 
+                if(win) return true;
+            }
+            //斜角判断
+            {
+                let win = true;
+                
+                for(let i = 0; i<3;i++){
+                    if(pattern[i][i] !== step){
+                        win = false;
+                    }
+                }
+                if(win) return true;
+            }
+            //斜角判断
+            {
+                let win = true;
+                for(let i = 0; i<3;i++){
+                    if(pattern[i][2-i] !== step){
+                        win = false;
+                    }
+                }
+                if(win) return true;
+            }
+
+
+            return false;
+        }
+
+        show();
+
+    </script>
+
+    
+</body>
+</html>
