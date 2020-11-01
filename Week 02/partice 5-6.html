@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    .cell{
+        width: 5px;
+        height: 5px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        float: left;
+        background: grey;
+        border-right:1px black solid;
+        border-bottom:1px black solid;
+        color:yellow;
+    }
+    #area{
+        width:600px;
+        height: 600px;
+    }
+</style>
+<body>
+    <div id="area""></div>
+    <button onclick="localStorage.map = JSON.stringify(map)">save</button>
+    <button onclick="localStorage.map = '' ">clear</button>
+    <script>
+        let map = localStorage.map?JSON.parse(localStorage.map):Array(10000).fill(0);    
+
+        let maps = 123;
+        // map[100] = 1;
+        let area = document.getElementById("area");
+        for (let x = 0; x < 100; x++) {
+            
+            for (let y = 0; y < 100; y++) {
+                let cell = document.createElement("div");
+                cell.setAttribute("class","cell");
+                //一元数组表示二维数组
+                if(map[100*x+y]==1) cell.style.backgroundColor = "black";
+
+                cell.addEventListener("mousemove",()=>{
+                    if(mousedown){
+                        if(clear){
+                            cell.style.backgroundColor = "";
+                            map[100*x+y] = 0;
+                        }else{
+                            cell.style.backgroundColor = "black";
+                            map[100*x+y] = 1;
+                        }
+                        
+                    }
+                    
+                })
+                area.appendChild(cell);
+            }   
+                     
+        }
+        //开始和停止状态表示
+        let mousedown = false;
+        //清除状态表示
+        let clear  = false;
+        document.addEventListener("mousedown",e=>{
+            mousedown = true;
+            if(e.which==3) clear=true;
+        })
+ 
+        document.addEventListener("mouseup",()=>{
+            mousedown = false;
+            clear = false;
+        })
+
+        function sleep(t){
+            return new Promise(reslove=>{
+                setTimeout(reslove,t);
+            })
+        }
+        //排序数据结构
+        class Sorted{
+            constructor(data,compare){
+                this.data = data.slice();
+                // console.log(this.data);
+                this.compare = compare || ((a,b) => a-b)
+            }
+            //取出最小的数据
+            take(){
+                if(!this.data.length)
+                return;
+
+                // 设置最小值
+                let min =  this.data[0];
+                let minindex = 0;
+
+                for (let i = 0; i < this.data.length; i++) {
+                    if(this.compare(this.data[i],min)<0){
+                        min = this.data[i];
+                        minindex = i;
+                    }
+                }
+                //n[i] 操作
+                //最小的值赋值为最后一个
+                this.data[minindex] = this.data[this.data.length - 1];
+                //弹出末尾数值
+                this.data.pop();
+                return min;
+            }
+            give(v){
+                this.data.push(v);
+            }
+        }
+
+        //广度搜索
+        async function findpath(map,start,end){
+
+            let queue = new Sorted([start], (a,b) => distance(a) - distance(b));
+            // console.log(queue);
+            let table = Object.create(map);
+            //入队 pre 前一个元素
+            async function insert(x,y,pre){
+                //超出边界跳过
+                if(x<0 || x>=100 || y<0 || y>=100)
+                    return;
+                ////碰到墙时跳过及已经搜索过的点跳过
+                if(table[100*x+y])
+                    return;
+                //入队的点改变状态
+                // await sleep(30);
+                // map[100*x+y] = 2;
+                // 每个格子都存前一个格子
+                table[100*x+y] = pre;
+                area.children[100*x+y].style.backgroundColor = "green";
+                queue.give([x,y]);
+            } 
+
+
+            function distance(point){
+                return (point[0] - end[0]) **2 + (point[1] - end[1]) **2;
+            }
+            
+            
+            while(queue.data.length){
+                //出队
+                let [x,y] = queue.take();
+                console.log(x,y);
+                //找到终点停止
+                if(x==end[0] && y==end[1]){
+                    console.log(x,y);
+                    //绘制路径
+                    let path = [];
+                    while(x!=start[0] || y!=start[1]){
+                        path.push([x,y]);
+                        [x,y] = table[100*x+y];
+                        await sleep(30);
+                        area.children[100*x+y].style.backgroundColor = "red";
+                    }
+                    return path;
+                }
+                //四个方向开始入队
+                await insert(x-1,y,[x,y]);
+                await insert(x+1,y,[x,y]);
+                await insert(x,y-1,[x,y]);
+                await insert(x,y+1,[x,y]);             
+                //斜向
+                await insert(x-1,y-1,[x,y]);
+                await insert(x+1,y-1,[x,y]);
+                await insert(x+1,y+1,[x,y]);
+                await insert(x-1,y+1,[x,y]);
+            }
+            return null;
+        }
+
+         let any = findpath(map,[0,0],[50,50]);
+         any.then(reslove=>console.log(reslove));
+        // console.log(any);
+
+    </script>
+</body>
+</html>

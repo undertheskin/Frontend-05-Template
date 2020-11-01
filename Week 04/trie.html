@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+    <script>
+        //字典树
+        let $ = Symbol("$")
+        class Trie{
+            constructor(){
+                this.root = Object.create(null);
+
+            }
+
+            //插入字符
+            insert(word){
+                // console.log(this.root);
+                let Node = this.root;
+                // Node.a = "123";console.log(this.root);
+                for(let c of word){
+
+                    if(!Node[c]){
+                        Node[c] = Object.create(null);                        
+                    }
+                    //放入下一级
+                    Node = Node[c];
+                    // console.log(this.root);
+                }
+                // console.log(Node);
+                //匹配完一个单词 结尾符号
+                if(!($ in Node)){
+                    Node[$] = 0;
+                }
+                Node[$] ++; 
+                
+            }
+
+            most(){
+                let max = 0;
+                let maxWord = null;
+                let visit = (node,word) =>{
+                    if(node[$] && node[$] > max){
+                        max = node[$];
+                        maxWord = word;
+                    }
+                    for(let p in node){
+                        visit(node[p],word + p);
+                    }
+                }
+                visit(this.root,"");
+                console.log(max,maxWord);
+            }
+
+        }
+
+        let x = "abc";
+        let v = "abd";
+        let y = "aeg";
+        let trie = new Trie();
+        for(let i=0;i<10;i++){
+            if(i<3){
+                trie.insert(x);
+            }else if(i>=3 && i<8){
+                trie.insert(v);
+            }else{
+                trie.insert(y);
+            }
+            // x = x + "c";
+        }
+        console.log(trie);
+        trie.most();
+        
+        
+    </script>
+    
+</body>
+</html>

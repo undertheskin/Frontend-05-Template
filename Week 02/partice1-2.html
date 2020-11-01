@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    .cell{
+        width: 5px;
+        height: 5px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        float: left;
+        background: grey;
+        border-right:1px black solid;
+        border-bottom:1px black solid;
+        color:yellow;
+    }
+    #area{
+        width:600px;
+        height: 600px;
+    }
+</style>
+<body>
+    <div id="area""></div>
+    <button onclick="localStorage.map = JSON.stringify(map)">save</button>
+    <button onclick="localStorage.map = '' ">clear</button>
+    <script>
+        let map = localStorage.map?JSON.parse(localStorage.map):Array(10000).fill(0);    
+
+        let maps = 123;
+        // map[100] = 1;
+        let area = document.getElementById("area");
+        for (let x = 0; x < 100; x++) {
+            
+            for (let y = 0; y < 100; y++) {
+                let cell = document.createElement("div");
+                cell.setAttribute("class","cell");
+                //一元数组表示二维数组
+                if(map[100*x+y]==1) cell.style.backgroundColor = "black";
+
+                cell.addEventListener("mousemove",()=>{
+                    if(mousedown){
+                        if(clear){
+                            cell.style.backgroundColor = "";
+                            map[100*x+y] = 0;
+                        }else{
+                            cell.style.backgroundColor = "black";
+                            map[100*x+y] = 1;
+                        }
+                        
+                    }
+                    
+                })
+                area.appendChild(cell);
+            }   
+                     
+        }
+        //开始和停止状态表示
+        let mousedown = false;
+        //清除状态表示
+        let clear  = false;
+        document.addEventListener("mousedown",e=>{
+            mousedown = true;
+            if(e.which==3) clear=true;
+        })
+ 
+        document.addEventListener("mouseup",()=>{
+            mousedown = false;
+            clear = false;
+        })
+
+        //广度搜索
+        function path(map,start,end){
+            let queue = [start];
+            //入队
+            function insert(x,y){
+                //超出边界跳过
+                if(x<0 || x>=100 || y<0 || y>=100)
+                    return;
+
+                ////碰到墙时跳过及已经搜索过的点跳过
+                if(map[100*x+y])
+                    return;
+
+                //入队的点改变状态
+                map[100*x+y] = 2;
+                queue.push([x,y]);
+            } 
+            
+            while(queue.length){
+                //出队
+                let [x,y] = queue.shift();
+                console.log(x,y);
+                //找到终点停止
+                if(x==end[0] && y==end[1]){
+                    console.log(x,y);
+                    return true;
+                }
+                //起点四个方向开始入队
+                insert(x-1,y);
+                insert(x+1,y);
+                insert(x,y-1);
+                insert(x,y+1);             
+            }
+        }
+    </script>
+</body>
+</html>
